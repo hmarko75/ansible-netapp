@@ -1,0 +1,17 @@
+---
+- hosts: all
+  remote_user: root
+  vars:
+    NORMAL_USER_NAME: 'koko'
+  tasks:
+    - name: "Create a secondary, non-root user"
+      user: name={{ NORMAL_USER_NAME }}
+            password='$6$rounds=656000$NPoCB6zQgMt1NREI$ZSC54P0rKuOrJf7ck89pscd9XCZDY.lR4l1pPJDH5BnXFxdI7pHB6tWlC0tYN070BGriEVQqQ9X0tQykWVf2O.'
+            shell=/bin/bash
+    - name: Add remote authorized key to allow future passwordless logins
+      authorized_key: user={{ NORMAL_USER_NAME }} key="{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
+    - name: Add normal user to sudoers
+      lineinfile: dest=/etc/sudoers
+                  regexp="{{ NORMAL_USER_NAME }} ALL"
+                  line="{{ NORMAL_USER_NAME }} ALL=(ALL) ALL"
+                  state=present
